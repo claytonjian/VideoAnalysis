@@ -93,10 +93,13 @@ public class Controller {
 		}
 	}
 	protected void createSTI(){
-		
 	}
 	@FXML
 	protected void stiByCopyingPixels(ActionEvent event) throws LineUnavailableException {
+		System.out.println("test");
+		double frames = capture.get(Videoio.CAP_PROP_FRAME_COUNT);
+		System.out.println("Has " + (int)frames + " frames");
+
 		// insert code for 1.1
 	}
 	@FXML
