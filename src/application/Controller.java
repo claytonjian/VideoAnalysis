@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sound.sampled.LineUnavailableException;
 import org.opencv.core.Mat;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
 
@@ -36,6 +37,7 @@ public class Controller {
 
 	private Mat image;
 	private VideoCapture capture;
+	private VideoCapture capture2; // temp duplicate
 	private ScheduledExecutorService timer;
 
 	private int width;
@@ -78,6 +80,11 @@ public class Controller {
 		}
 		else{
 			capture = new VideoCapture(getVideoFilename(file)); // open video file
+
+// temp second file			
+			capture2 = new VideoCapture(getVideoFilename(file)); // open video file
+//			
+			
 			title.setText(file.getName());
 			if (capture.isOpened()) { // open successfully
 				createFrameGrabber(0,0);
@@ -96,10 +103,22 @@ public class Controller {
 	}
 	@FXML
 	protected void stiByCopyingPixels(ActionEvent event) throws LineUnavailableException {
-		System.out.println("test");
-		double frames = capture.get(Videoio.CAP_PROP_FRAME_COUNT);
-		System.out.println("Has " + (int)frames + " frames");
 
+		height = (int)capture.get(Videoio.CAP_PROP_FRAME_HEIGHT);
+		width = (int)capture.get(Videoio.CAP_PROP_FRAME_WIDTH);
+		int length = (int)capture.get(Videoio.CAP_PROP_FRAME_COUNT);
+		System.out.println("Has " + (int)length + " frames");
+		System.out.println("Has " + height + " height");
+		System.out.println("Has " + width + " width");
+
+		image = new Mat();
+		Mat output = new Mat();
+		for (int i=0; i<length; i++) {
+			capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
+			//capture.set(2, 1);
+			capture2.read(image);
+			Imgcodecs.imwrite("frame"+i+".png", image);
+		}
 		// insert code for 1.1
 	}
 	@FXML
