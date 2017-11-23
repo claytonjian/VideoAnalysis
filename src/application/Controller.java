@@ -6,6 +6,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.sound.sampled.LineUnavailableException;
+
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
@@ -23,6 +26,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import utilities.Utilities;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Controller {
 
@@ -104,20 +111,31 @@ public class Controller {
 	@FXML
 	protected void stiByCopyingPixels(ActionEvent event) throws LineUnavailableException {
 
+// read image properties:		
 		height = (int)capture.get(Videoio.CAP_PROP_FRAME_HEIGHT);
 		width = (int)capture.get(Videoio.CAP_PROP_FRAME_WIDTH);
-		int length = (int)capture.get(Videoio.CAP_PROP_FRAME_COUNT);
-		System.out.println("Has " + (int)length + " frames");
-		System.out.println("Has " + height + " height");
-		System.out.println("Has " + width + " width");
+		int length = (int)capture.get(Videoio.CAP_PROP_FRAME_COUNT); // video length in frames
 
 		image = new Mat();
-		Mat output = new Mat();
-		for (int i=0; i<length; i++) {
+
+// Read in first column as base for output:
+		capture2.set(Videoio.CAP_PROP_POS_FRAMES, 0);
+		capture2.read(image);
+		Mat output = image.col(width/2).clone(); // first column
+
+		for (int i=1; i<length; i++) {
+			System.out.println("On column "+i);
 			capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
-			//capture.set(2, 1);
 			capture2.read(image);
-			Imgcodecs.imwrite("frame"+i+".png", image);
+			
+// concatenate each column with existing output:			
+			Mat tempmat = image.col(width/2).clone();
+			List<Mat> mats = Arrays.asList(output, tempmat);
+			Core.hconcat(mats, output);
+			
+//			Imgcodecs.imwrite("col"+i+".png", image.col(width/2));
+			Imgcodecs.imwrite("output.png", output);
+			
 		}
 		// insert code for 1.1
 	}
