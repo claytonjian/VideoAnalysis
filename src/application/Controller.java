@@ -18,6 +18,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
@@ -30,6 +31,7 @@ import utilities.Utilities;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class Controller {
 
@@ -106,12 +108,39 @@ public class Controller {
 			}
 		}
 	}
-	protected void createSTI(){
-	}
 	@FXML
 	protected void stiByCopyingPixels(ActionEvent event) throws LineUnavailableException {
-
+		List<String> stiChoices = new ArrayList<>();
+		stiChoices.add("STI from center columns");
+		stiChoices.add("STI from center rows");
+		stiChoices.add("STI from diagonals");
+		
+		ChoiceDialog<String> stiChoiceDialog = new ChoiceDialog<>("", stiChoices);
+		stiChoiceDialog.setTitle("STI Type");
+		stiChoiceDialog.setHeaderText("Select a method for generating an STI");
+		stiChoiceDialog.setContentText("Choose your STI type");
+		Optional<String> stiChoiceResult = stiChoiceDialog.showAndWait();
+		if(stiChoiceResult.isPresent() && !stiChoiceResult.toString().substring(9, stiChoiceResult.toString().length() - 1).equals("")){
+			String stiMethod = stiChoiceResult.toString().substring(9, stiChoiceResult.toString().length() - 1);
+			if(stiMethod.equals("STI from center columns")){
+				
+			}
+			else if(stiMethod.equals("STI from center rows")){
+				
+			}
+			else{
+				
+			}
+		}
+		else{
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("Warning");
+			alert.setHeaderText("No STI method selected");
+			alert.setContentText("Please select an STI method to continue");
+			alert.showAndWait();
+		}
 // read image properties:		
+		/*
 		height = (int)capture.get(Videoio.CAP_PROP_FRAME_HEIGHT);
 		width = (int)capture.get(Videoio.CAP_PROP_FRAME_WIDTH);
 		int length = (int)capture.get(Videoio.CAP_PROP_FRAME_COUNT); // video length in frames
@@ -134,10 +163,9 @@ public class Controller {
 			Core.hconcat(mats, output);
 			
 //			Imgcodecs.imwrite("col"+i+".png", image.col(width/2));
-			Imgcodecs.imwrite("output.png", output);
-			
+			Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
 		}
-		// insert code for 1.1
+		*/
 	}
 	@FXML
 	protected void stiByHistogramDifferences(ActionEvent event) throws LineUnavailableException {
