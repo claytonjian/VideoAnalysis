@@ -10,6 +10,7 @@ import javax.sound.sampled.LineUnavailableException;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
@@ -103,69 +104,97 @@ public class Controller {
 				alert.setTitle("Error");
 				alert.setHeaderText("File is not a video");
 				alert.setContentText("Please select a video file to proceed!");
-
 				alert.showAndWait();
 			}
 		}
 	}
 	@FXML
 	protected void stiByCopyingPixels(ActionEvent event) throws LineUnavailableException {
-		List<String> stiChoices = new ArrayList<>();
-		stiChoices.add("STI from center columns");
-		stiChoices.add("STI from center rows");
-		stiChoices.add("STI from diagonals");
-		
-		ChoiceDialog<String> stiChoiceDialog = new ChoiceDialog<>("", stiChoices);
-		stiChoiceDialog.setTitle("STI Type");
-		stiChoiceDialog.setHeaderText("Select a method for generating an STI");
-		stiChoiceDialog.setContentText("Choose your STI type");
-		Optional<String> stiChoiceResult = stiChoiceDialog.showAndWait();
-		if(stiChoiceResult.isPresent() && !stiChoiceResult.toString().substring(9, stiChoiceResult.toString().length() - 1).equals("")){
-			String stiMethod = stiChoiceResult.toString().substring(9, stiChoiceResult.toString().length() - 1);
-			if(stiMethod.equals("STI from center columns")){
-				
-			}
-			else if(stiMethod.equals("STI from center rows")){
-				
+		if(capture != null){
+			List<String> stiChoices = new ArrayList<>();
+			stiChoices.add("STI from copying center columns");
+			stiChoices.add("STI from copying center rows");
+			stiChoices.add("STI from copying diagonals");
+			
+			ChoiceDialog<String> stiChoiceDialog = new ChoiceDialog<>("", stiChoices);
+			stiChoiceDialog.setTitle("STI Type");
+			stiChoiceDialog.setHeaderText("Select a method for generating an STI");
+			stiChoiceDialog.setContentText("Choose your STI type");
+			Optional<String> stiChoiceResult = stiChoiceDialog.showAndWait();
+			if(stiChoiceResult.isPresent() && !stiChoiceResult.toString().substring(9, stiChoiceResult.toString().length() - 1).equals("")){
+				String stiMethod = stiChoiceResult.toString().substring(9, stiChoiceResult.toString().length() - 1);
+				// read image properties:		
+				height = (int)capture.get(Videoio.CAP_PROP_FRAME_HEIGHT);
+				width = (int)capture.get(Videoio.CAP_PROP_FRAME_WIDTH);
+				int length = (int)capture.get(Videoio.CAP_PROP_FRAME_COUNT); // video length in frames
+				image = new Mat();
+				if(stiMethod.equals("STI from copying center columns")){
+					// Read in first column as base for output:
+					capture2.set(Videoio.CAP_PROP_POS_FRAMES, 0);
+					capture2.read(image);
+					Mat output = image.col(width/2).clone(); // first column
+					for (int i=1; i<length; i++) {
+						capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
+						capture2.read(image);
+						
+						// concatenate each column with existing output:			
+						Mat tempmat = image.col(width/2).clone();
+						List<Mat> mats = Arrays.asList(output, tempmat);
+						Core.hconcat(mats, output);
+						Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
+					}
+				}
+				else if(stiMethod.equals("STI from copying center rows")){
+					// Read in first row as base for output:
+					capture2.set(Videoio.CAP_PROP_POS_FRAMES, 0);
+					capture2.read(image);
+					Mat output = image.row(height/2).clone(); // first row
+					for (int i=1; i<length; i++) {
+						capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
+						capture2.read(image);
+						
+						// concatenate each row with existing output:			
+						Mat tempmat = image.row(height/2).clone();
+						List<Mat> mats = Arrays.asList(output, tempmat);
+						Core.vconcat(mats, output);
+						Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
+					}
+					output = output.t();
+					Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
+				}
+				else{
+					capture2.set(Videoio.CAP_PROP_POS_FRAMES, 0);
+					capture2.read(image);
+					Mat output = image.diag(0).clone(); // first row
+					Size s = output.size();
+					System.out.println("Rows: " + s.height + "\nColumns: " + s.width);
+					for (int i=1; i<length; i++) {
+						capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
+						capture2.read(image);
+						
+						// concatenate each row with existing output:			
+						Mat tempmat = image.diag(0).clone();
+						List<Mat> mats = Arrays.asList(output, tempmat);
+						Core.hconcat(mats, output);
+						Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
+					}
+				}
 			}
 			else{
-				
+				Alert alert = new Alert(AlertType.WARNING);
+				alert.setTitle("Warning");
+				alert.setHeaderText("No STI method selected");
+				alert.setContentText("Please select an STI method to continue");
+				alert.showAndWait();
 			}
 		}
 		else{
-			Alert alert = new Alert(AlertType.WARNING);
-			alert.setTitle("Warning");
-			alert.setHeaderText("No STI method selected");
-			alert.setContentText("Please select an STI method to continue");
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Error");
+			alert.setHeaderText("No video chosen");
+			alert.setContentText("Please select a video file to proceed!");
 			alert.showAndWait();
 		}
-// read image properties:		
-		/*
-		height = (int)capture.get(Videoio.CAP_PROP_FRAME_HEIGHT);
-		width = (int)capture.get(Videoio.CAP_PROP_FRAME_WIDTH);
-		int length = (int)capture.get(Videoio.CAP_PROP_FRAME_COUNT); // video length in frames
-
-		image = new Mat();
-
-// Read in first column as base for output:
-		capture2.set(Videoio.CAP_PROP_POS_FRAMES, 0);
-		capture2.read(image);
-		Mat output = image.col(width/2).clone(); // first column
-
-		for (int i=1; i<length; i++) {
-			System.out.println("On column "+i);
-			capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
-			capture2.read(image);
-			
-// concatenate each column with existing output:			
-			Mat tempmat = image.col(width/2).clone();
-			List<Mat> mats = Arrays.asList(output, tempmat);
-			Core.hconcat(mats, output);
-			
-//			Imgcodecs.imwrite("col"+i+".png", image.col(width/2));
-			Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
-		}
-		*/
 	}
 	@FXML
 	protected void stiByHistogramDifferences(ActionEvent event) throws LineUnavailableException {
