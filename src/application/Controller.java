@@ -91,10 +91,10 @@ public class Controller {
 		else{
 			capture = new VideoCapture(getVideoFilename(file)); // open video file
 
-// temp second file			
+			// temp second file			
 			capture2 = new VideoCapture(getVideoFilename(file)); // open video file
-//			
-			
+			//			
+
 			title.setText(file.getName());
 			if (capture.isOpened()) { // open successfully
 				createFrameGrabber(0,0);
@@ -115,7 +115,7 @@ public class Controller {
 			stiChoices.add("STI from copying center columns");
 			stiChoices.add("STI from copying center rows");
 			stiChoices.add("STI from copying diagonals");
-			
+
 			ChoiceDialog<String> stiChoiceDialog = new ChoiceDialog<>("", stiChoices);
 			stiChoiceDialog.setTitle("STI Type");
 			stiChoiceDialog.setHeaderText("Select a method for generating an STI");
@@ -136,12 +136,14 @@ public class Controller {
 					for (int i=1; i<length; i++) {
 						capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
 						capture2.read(image);
-						
+
 						// concatenate each column with existing output:			
 						Mat tempmat = image.col(width/2).clone();
 						List<Mat> mats = Arrays.asList(output, tempmat);
 						Core.hconcat(mats, output);
 						Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
+						//						Imgcodecs.imwrite("output.png", output);
+
 					}
 				}
 				else if(stiMethod.equals("STI from copying center rows")){
@@ -152,12 +154,14 @@ public class Controller {
 					for (int i=1; i<length; i++) {
 						capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
 						capture2.read(image);
-						
+
 						// concatenate each row with existing output:			
 						Mat tempmat = image.row(height/2).clone();
 						List<Mat> mats = Arrays.asList(output, tempmat);
 						Core.vconcat(mats, output);
-						Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
+						//						Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
+						Imgcodecs.imwrite("output.png", output);
+
 					}
 					output = output.t();
 					Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
@@ -171,12 +175,14 @@ public class Controller {
 					for (int i=1; i<length; i++) {
 						capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
 						capture2.read(image);
-						
+
 						// concatenate each row with existing output:			
 						Mat tempmat = image.diag(0).clone();
 						List<Mat> mats = Arrays.asList(output, tempmat);
 						Core.hconcat(mats, output);
 						Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
+						//						Imgcodecs.imwrite("output.png", output);
+
 					}
 				}
 			}
@@ -198,6 +204,45 @@ public class Controller {
 	}
 	@FXML
 	protected void stiByHistogramDifferences(ActionEvent event) throws LineUnavailableException {
+		height = (int)capture.get(Videoio.CAP_PROP_FRAME_HEIGHT);
+		width = (int)capture.get(Videoio.CAP_PROP_FRAME_WIDTH);
+		int length = (int)capture.get(Videoio.CAP_PROP_FRAME_COUNT);
+		image = new Mat();
+		Mat image2 = new Mat();
+		Mat output = new Mat();
+		for (int i=0; i<3; i++) {
+			capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
+			capture2.read(image);
+			capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
+			capture2.read(image2);
+// go through the image and change colour to rg chromaticity
+			for (int j = 0;j<height;j++) {
+				for (int k=0;k<width;k++) {
+					double[] pixel = image.get(j,k);
+					double r = pixel[0];
+					double g = pixel[1];
+					double b = pixel[2];
+//					System.out.println("red is: "+r);
+//					System.out.println("blue is: "+g);
+//					System.out.println("green is: "+b);
+					double rgb = r+g+b;
+//					System.out.println("rgb is: "+rgb);
+					if (rgb == 0) { // avoid divide by zero in case of black
+						pixel[0] = 1/3;
+						pixel[1] = 1/3;
+						pixel[2] = 1/3;
+					}
+					else {
+						pixel[0] = 255*r/rgb;
+						pixel[1] = 255*g/rgb;
+						pixel[2] = 0;//b/rgb;
+					}
+
+					image.put(j, k, pixel); // set pixel to new value
+				}
+			}
+			Imgcodecs.imwrite("frame"+i+".png", image);
+		}
 		// insert code for 1.2
 	}
 	protected void createFrameGrabber(double curFrameNumber, double totFrameCount) throws InterruptedException {
