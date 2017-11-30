@@ -7,11 +7,15 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sound.sampled.LineUnavailableException;
 
+import org.opencv.core.*;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfFloat;
+import org.opencv.core.MatOfInt;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
 
@@ -210,11 +214,11 @@ public class Controller {
 		image = new Mat();
 		Mat image2 = new Mat();
 		Mat output = new Mat();
-		for (int i=0; i<3; i++) {
-			capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
+		for (int i=40; i<50; i++) { // in order to do differences, must begin at frame 1, not 0
+			capture2.set(Videoio.CAP_PROP_POS_FRAMES, i-1);
 			capture2.read(image);
 			capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
-			capture2.read(image2);
+			capture2.read(image2); // image2 is the next frame
 // go through the image and change colour to rg chromaticity
 			for (int j = 0;j<height;j++) {
 				for (int k=0;k<width;k++) {
@@ -222,15 +226,12 @@ public class Controller {
 					double r = pixel[0];
 					double g = pixel[1];
 					double b = pixel[2];
-//					System.out.println("red is: "+r);
-//					System.out.println("blue is: "+g);
-//					System.out.println("green is: "+b);
 					double rgb = r+g+b;
 //					System.out.println("rgb is: "+rgb);
 					if (rgb == 0) { // avoid divide by zero in case of black
 						pixel[0] = 1/3;
 						pixel[1] = 1/3;
-						pixel[2] = 1/3;
+						pixel[2] = 0;
 					}
 					else {
 						pixel[0] = 255*r/rgb;
@@ -241,7 +242,44 @@ public class Controller {
 					image.put(j, k, pixel); // set pixel to new value
 				}
 			}
-			Imgcodecs.imwrite("frame"+i+".png", image);
+//			Imgcodecs.imwrite("frame"+i+".png", image2); 
+			for (int j = 0;j<height;j++) { // same process for next frame
+				for (int k=0;k<width;k++) {
+					double[] pixel = image2.get(j,k);
+					double r = pixel[0];
+					double g = pixel[1];
+					double b = pixel[2];
+					double rgb = r+g+b;
+//					System.out.println("rgb is: "+rgb);
+					if (rgb == 0) { // avoid divide by zero in case of black
+						pixel[0] = 1/3;
+						pixel[1] = 1/3;
+						pixel[2] = 0;
+					}
+					else {
+						pixel[0] = 255*r/rgb;
+						pixel[1] = 255*g/rgb;
+						pixel[2] = 0;//b/rgb;
+					}
+
+					image2.put(j, k, pixel); // set pixel to new value
+				}
+			}
+			
+			List<Mat> mat1 = Arrays.asList(image);
+			List<Mat> mat2 = Arrays.asList(image2);
+			MatOfInt channels = new MatOfInt(0,1);
+			MatOfInt bins = new MatOfInt(7,7);
+			MatOfFloat range = new MatOfFloat(0,256,0,256);
+			Mat h0 = new Mat();
+			Mat h1 = new Mat();
+
+			Imgproc.calcHist(mat1, channels, new Mat(), h0, bins, range, false);
+			Imgproc.calcHist(mat2, channels, new Mat(), h1, bins, range, false);
+
+//			Core.normalize(h1, h1, 1, 0, 2, -1, new Mat());
+			Imgcodecs.imwrite("histo.png", h1);
+			
 		}
 		// insert code for 1.2
 	}
