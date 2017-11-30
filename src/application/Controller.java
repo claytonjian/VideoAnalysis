@@ -227,7 +227,6 @@ public class Controller {
 					double g = pixel[1];
 					double b = pixel[2];
 					double rgb = r+g+b;
-//					System.out.println("rgb is: "+rgb);
 					if (rgb == 0) { // avoid divide by zero in case of black
 						pixel[0] = 1/3;
 						pixel[1] = 1/3;
@@ -242,7 +241,7 @@ public class Controller {
 					image.put(j, k, pixel); // set pixel to new value
 				}
 			}
-//			Imgcodecs.imwrite("frame"+i+".png", image2); 
+			//			Imgcodecs.imwrite("frame"+i+".png", image2); 
 			for (int j = 0;j<height;j++) { // same process for next frame
 				for (int k=0;k<width;k++) {
 					double[] pixel = image2.get(j,k);
@@ -250,7 +249,7 @@ public class Controller {
 					double g = pixel[1];
 					double b = pixel[2];
 					double rgb = r+g+b;
-//					System.out.println("rgb is: "+rgb);
+					//					System.out.println("rgb is: "+rgb);
 					if (rgb == 0) { // avoid divide by zero in case of black
 						pixel[0] = 1/3;
 						pixel[1] = 1/3;
@@ -265,21 +264,29 @@ public class Controller {
 					image2.put(j, k, pixel); // set pixel to new value
 				}
 			}
-			
-			List<Mat> mat1 = Arrays.asList(image);
-			List<Mat> mat2 = Arrays.asList(image2);
-			MatOfInt channels = new MatOfInt(0,1);
-			MatOfInt bins = new MatOfInt(7,7);
-			MatOfFloat range = new MatOfFloat(0,256,0,256);
-			Mat h0 = new Mat();
-			Mat h1 = new Mat();
+			Mat histsti = new Mat(width, length, CvType.CV_8UC1);
+			for (int r = 0; r<width; r++) {
+				List<Mat> mat1 = Arrays.asList(image.col(r));
+				List<Mat> mat2 = Arrays.asList(image2.col(r));
+				MatOfInt channels = new MatOfInt(0,1);
+				MatOfInt bins = new MatOfInt(7,7);
+				MatOfFloat range = new MatOfFloat(0,255,0,255);
+				Mat h0 = new Mat();
+				Mat h1 = new Mat();
 
-			Imgproc.calcHist(mat1, channels, new Mat(), h0, bins, range, false);
-			Imgproc.calcHist(mat2, channels, new Mat(), h1, bins, range, false);
-
-//			Core.normalize(h1, h1, 1, 0, 2, -1, new Mat());
-			Imgcodecs.imwrite("histo.png", h1);
+				Imgproc.calcHist(mat1, channels, new Mat(), h0, bins, range, false);
+				Imgproc.calcHist(mat2, channels, new Mat(), h1, bins, range, false);
+				Core.normalize(h1, h1, 1, 0, Core.NORM_L1, -1, new Mat());
+//				Imgcodecs.imwrite("histo.png", h0);
+//				Imgcodecs.imwrite("histo1.png", h1);
+				
+				double histdiff = Imgproc.compareHist(h0, h1, Imgproc.CV_COMP_INTERSECT);
+				histsti.put(r, i, histdiff);
+			}
+			Imgcodecs.imwrite("histdiff.png", histsti);
 			
+
+
 		}
 		// insert code for 1.2
 	}
