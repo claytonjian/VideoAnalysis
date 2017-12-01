@@ -1,11 +1,22 @@
 package application;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.imageio.ImageIO;
 import javax.sound.sampled.LineUnavailableException;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 import org.opencv.core.*;
 import org.opencv.core.Core;
@@ -113,7 +124,7 @@ public class Controller {
 		}
 	}
 	@FXML
-	protected void stiByCopyingPixels(ActionEvent event) throws LineUnavailableException {
+	protected void stiByCopyingPixels(ActionEvent event) throws Exception {
 		if(capture != null){
 			List<String> stiChoices = new ArrayList<>();
 			stiChoices.add("STI from copying center columns");
@@ -145,10 +156,9 @@ public class Controller {
 						Mat tempmat = image.col(width/2).clone();
 						List<Mat> mats = Arrays.asList(output, tempmat);
 						Core.hconcat(mats, output);
-						Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
-						//						Imgcodecs.imwrite("output.png", output);
-
+						Imgcodecs.imwrite("output.png", output);
 					}
+					displayImage("output.png", "STI from copying center columns");
 				}
 				else if(stiMethod.equals("STI from copying center rows")){
 					// Read in first row as base for output:
@@ -168,7 +178,9 @@ public class Controller {
 
 					}
 					output = output.t();
-					Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
+					Imgcodecs.imwrite("output.png", output);
+					displayImage("output.png", "STI from copying center rows");
+					
 				}
 				else{
 					capture2.set(Videoio.CAP_PROP_POS_FRAMES, 0);
@@ -184,7 +196,6 @@ public class Controller {
 						Mat tempmat = image.diag(0).clone();
 						List<Mat> mats = Arrays.asList(output, tempmat);
 						Core.hconcat(mats, output);
-						Imgcodecs.imwrite("/Users/Clayton/Desktop/output.png", output);
 						//						Imgcodecs.imwrite("output.png", output);
 
 					}
@@ -294,11 +305,23 @@ public class Controller {
 				histsti.put(r, i, histdiff);
 			}
 			Imgcodecs.imwrite("histdiff.png", histsti);
-			
-
-
 		}
-		// insert code for 1.2
+	}
+	protected void displayImage(String fileName, String methodName) throws Exception{
+		File file = new File(fileName);
+		BufferedImage image = ImageIO.read(file);
+		ImageIcon icon = new ImageIcon(image);
+		JFrame frame = new JFrame();
+		frame.setLayout(new FlowLayout());
+		frame.setSize(600, 400);
+		JLabel label = new JLabel();
+		label.setIcon(icon);
+		label.setHorizontalAlignment(SwingConstants.CENTER);
+		label.setVerticalAlignment(SwingConstants.CENTER);
+		frame.add(label);
+		frame.setVisible(true);
+		frame.setLocationRelativeTo(null);
+		frame.setTitle(methodName);
 	}
 	protected void createFrameGrabber(double curFrameNumber, double totFrameCount) throws InterruptedException {
 		if (capture != null && capture.isOpened()) { // the video must be open
