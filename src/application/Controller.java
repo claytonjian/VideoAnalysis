@@ -214,7 +214,7 @@ public class Controller {
 		image = new Mat();
 		Mat image2 = new Mat();
 		Mat output = new Mat();
-		for (int i=40; i<50; i++) { // in order to do differences, must begin at frame 1, not 0
+		for (int i=1; i<length; i++) { // in order to do differences, must begin at frame 1, not 0
 			capture2.set(Videoio.CAP_PROP_POS_FRAMES, i-1);
 			capture2.read(image);
 			capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
@@ -228,8 +228,8 @@ public class Controller {
 					double b = pixel[2];
 					double rgb = r+g+b;
 					if (rgb == 0) { // avoid divide by zero in case of black
-						pixel[0] = 1/3;
-						pixel[1] = 1/3;
+						pixel[0] = 255/3;
+						pixel[1] = 255/3;
 						pixel[2] = 0;
 					}
 					else {
@@ -251,8 +251,8 @@ public class Controller {
 					double rgb = r+g+b;
 					//					System.out.println("rgb is: "+rgb);
 					if (rgb == 0) { // avoid divide by zero in case of black
-						pixel[0] = 1/3;
-						pixel[1] = 1/3;
+						pixel[0] = 255/3;
+						pixel[1] = 255/3;
 						pixel[2] = 0;
 					}
 					else {
@@ -264,23 +264,33 @@ public class Controller {
 					image2.put(j, k, pixel); // set pixel to new value
 				}
 			}
-			Mat histsti = new Mat(width, length, CvType.CV_8UC1);
+			Mat histsti = new Mat(width, length, CvType.CV_32FC1);
 			for (int r = 0; r<width; r++) {
 				List<Mat> mat1 = Arrays.asList(image.col(r));
 				List<Mat> mat2 = Arrays.asList(image2.col(r));
 				MatOfInt channels = new MatOfInt(0,1);
 				MatOfInt bins = new MatOfInt(7,7);
-				MatOfFloat range = new MatOfFloat(0,255,0,255);
+				MatOfFloat range = new MatOfFloat(0,256,0,256);
 				Mat h0 = new Mat();
 				Mat h1 = new Mat();
 
 				Imgproc.calcHist(mat1, channels, new Mat(), h0, bins, range, false);
-				Imgproc.calcHist(mat2, channels, new Mat(), h1, bins, range, false);
-				Core.normalize(h1, h1, 1, 0, Core.NORM_L1, -1, new Mat());
-//				Imgcodecs.imwrite("histo.png", h0);
-//				Imgcodecs.imwrite("histo1.png", h1);
+
+//				if (i==80) {
+//					Imgcodecs.imwrite("histo"+i+".png", h0);
+//				}
 				
-				double histdiff = Imgproc.compareHist(h0, h1, Imgproc.CV_COMP_INTERSECT);
+				Imgproc.calcHist(mat2, channels, new Mat(), h1, bins, range, false);
+				Core.normalize(h0, h0, 1, 0, Core.NORM_L1, -1, new Mat());
+				Core.normalize(h1, h1, 1, 0, Core.NORM_L1, -1, new Mat());
+//				Scalar sum0 = Core.sumElems(h0);
+//				Scalar sum1 = Core.sumElems(h1);
+//				System.out.println("Sum of h0 is " + sum0);
+//				System.out.println("Sum of h1 is " + sum0);
+//				Imgcodecs.imwrite("histo"+r+".png", h0);
+//				Imgcodecs.imwrite("histo1"+r+".png", h1);
+				
+				double histdiff = Imgproc.compareHist(h1, h0, Imgproc.CV_COMP_INTERSECT);
 				histsti.put(r, i, histdiff);
 			}
 			Imgcodecs.imwrite("histdiff.png", histsti);
