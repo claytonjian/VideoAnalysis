@@ -1,24 +1,18 @@
 package application;
 
-import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
-import javax.sound.sampled.LineUnavailableException;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import org.opencv.core.*;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -49,6 +43,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 
+ * Controller
+ * 
+ * This class serves as a controller for our program
+ * and takes care of all the user actions. It is modified
+ * from our assignment 2 code.
+ * 
+ * @author Clayton Jian, Eoin Coll
+ *
+ */
+
 public class Controller {
 
 	@FXML
@@ -71,17 +77,50 @@ public class Controller {
 	private double framePerSecond;
 	private double totalFrameCount;
 
+	/**
+	 * 
+	 * initialize
+	 * 
+	 * This method is used to initialize the title and some variables.
+	 * 
+	 * @author Clayton Jian, Eoin Coll
+	 *
+	 */
 	@FXML
 	private void initialize() {
 		width = 32;
 		height = 32;
 		title.setText("CMPT 365 Project");
 	}
-
+	/**
+	 * 
+	 * getVideoFilename
+	 * 
+	 * This method is used to grab the path of the video that is
+	 * selected by the user.
+	 * 
+	 * @param video the video that the user chose
+	 * @return the path of the video
+	 * @author Clayton Jian, Eoin Coll
+	 *
+	 */
 	private String getVideoFilename(File video) {
 		return video.getAbsolutePath();
 	}
 
+	/**
+	 * 
+	 * openImage
+	 * 
+	 * This method is used to display a open dialog window
+	 * for the user to select their video and to display an error
+	 * if the file is not a video
+	 * 
+	 * @param event a user click event on the "Open" button
+	 * @throws InterruptedException if button press is interrupted
+	 * @author Clayton Jian, Eoin Coll
+	 *
+	 */
 	@FXML
 	protected void openImage(ActionEvent event) throws InterruptedException {
 		Stage openStage = new Stage();
@@ -123,6 +162,19 @@ public class Controller {
 			}
 		}
 	}
+	/**
+	 * 
+	 * stiByCopyingPixels
+	 * 
+	 * This method is used to perform the STI generation by 
+	 * copying pixels based on the user's requirement. 
+	 * It also opens the STI in a new window to be viewed.
+	 * 
+	 * @param event user click event on the "STI by Copying Pixels" button
+	 * @throws Exception if output image file cannot be found
+	 * @author Clayton Jian, Eoin Coll
+	 *
+	 */
 	@FXML
 	protected void stiByCopyingPixels(ActionEvent event) throws Exception {
 		if(capture != null){
@@ -217,8 +269,20 @@ public class Controller {
 			alert.showAndWait();
 		}
 	}
+	/**
+	 * 
+	 * stiByHistogramDifferences
+	 * 
+	 * This method is used to perform the STI generation by 
+	 * histogram differences. 
+	 * 
+	 * @param event a user click event on the "STI by Histogram Differences" button
+	 * @throws Exception if output image file cannot be found
+	 * @author Clayton Jian, Eoin Coll
+	 *
+	 */
 	@FXML
-	protected void stiByHistogramDifferences(ActionEvent event) throws LineUnavailableException {
+	protected void stiByHistogramDifferences(ActionEvent event) throws Exception {
 		height = (int)capture.get(Videoio.CAP_PROP_FRAME_HEIGHT);
 		width = (int)capture.get(Videoio.CAP_PROP_FRAME_WIDTH);
 		int length = (int)capture.get(Videoio.CAP_PROP_FRAME_COUNT);
@@ -307,6 +371,18 @@ public class Controller {
 			Imgcodecs.imwrite("histdiff.png", histsti);
 		}
 	}
+	/**
+	 * 
+	 * displayImage
+	 * 
+	 * This method is used to display the STI that was created
+	 * 
+	 * @param fileName the name of the STI picture
+	 * @param methodName the name of the STI method used
+	 * @throws Exception if image is not found
+	 * @author Clayton Jian, Eoin Coll
+	 *
+	 */
 	protected void displayImage(String fileName, String methodName) throws Exception{
 		File file = new File(fileName);
 		BufferedImage image = ImageIO.read(file);
@@ -323,6 +399,19 @@ public class Controller {
 		frame.setLocationRelativeTo(null);
 		frame.setTitle(methodName);
 	}
+	/**
+	 * 
+	 * createFrameGrabber
+	 * 
+	 * This method is used to display the video that the
+	 * user has selected. 
+	 * 
+	 * @param curFrameNumber the current frame number, initialized at 0
+	 * @param totFrameCount the total frame count, initialized at 0
+	 * @throws InterruptedException if video playback is interrupted
+	 * @author Clayton Jian, Eoin Coll
+	 *
+	 */
 	protected void createFrameGrabber(double curFrameNumber, double totFrameCount) throws InterruptedException {
 		if (capture != null && capture.isOpened()) { // the video must be open
 			framePerSecond = capture.get(Videoio.CAP_PROP_FPS);
