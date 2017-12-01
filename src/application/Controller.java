@@ -239,7 +239,6 @@ public class Controller {
 					capture2.read(image);
 					Mat output = image.diag(0).clone(); // first row
 					Size s = output.size();
-					System.out.println("Rows: " + s.height + "\nColumns: " + s.width);
 					for (int i=1; i<length; i++) {
 						capture2.set(Videoio.CAP_PROP_POS_FRAMES, i);
 						capture2.read(image);
